@@ -543,7 +543,7 @@ export default function App() {
         <header className="mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100">
           <div className="flex items-center gap-6">
             <div className="bg-white p-2 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-center w-20 h-20">
-              <img src="" alt="logo" className="w-16 h-16 object-contain" onError={(e) => e.target.style.display='none'} />
+              <img src="/logo.png"  alt="logo" className="w-16 h-16 object-contain" onError={(e) => e.target.style.display='none'} />
             </div>
             <div>
               <div className="text-sm font-black text-gray-400 tracking-widest uppercase mb-1">(주)웰쉐어 로지스</div>
