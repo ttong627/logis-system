@@ -700,4 +700,300 @@ export default function App() {
                              const isAuto = FIXED_MAPPING[r] || (r==='시흥시' && m==='사회적협동조합 행복나눔') || (r==='동대문구' && m==='웰쉐어 사회적협동조합');
                              return (
                                <div key={m} className={`flex items-center justify-between px-6 py-3 rounded-2xl border ${isAuto ? 'bg-gray-50 border-gray-100' : 'bg-white border-gray-200 shadow-sm hover:border-cyan-300 transition-colors'}`}>
-                                 <div className="flex items-center gap-3 font-black text-sm text-gray-700">{isAuto ? <Lock className="
+                                 <div className="flex items-center gap-3 font-black text-sm text-gray-700">{isAuto ? <Lock className="w-4 h-4 text-gray-300"/> : <Truck className="w-4 h-4 text-cyan-500"/>} {m}</div>
+                                 <div className="w-36">
+                                   {isAuto ? <span className="block text-right font-black text-gray-900 text-2xl pr-4">{formatNumber(q)}</span> : (
+                                     <input id={`alloc-${r}-${m}`} type="text" disabled={!isAdmin} value={formatNumber(q)} onChange={(e) => handleAllocationChange(r, m, e.target.value)} onKeyDown={(e) => handleKeyDown(e, `alloc-${r}-${m}`)} onFocus={(e) => e.target.select()} className="w-full p-2 border-b-2 border-gray-200 bg-transparent text-right text-2xl font-black text-gray-900 outline-none focus:border-gray-800 transition-all" />
+                                   )}
+                                 </div>
+                               </div>
+                             );
+                           })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 하단 요약 (스크롤 제거) */}
+              <div className="mt-16 border-t border-gray-200 pt-12 grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-md flex flex-col h-full">
+                  <h4 className="font-black text-lg text-gray-800 mb-8 pb-4 border-b border-gray-100 flex items-center gap-2"><PieChart className="w-5 h-5 text-fuchsia-500" /> 권역별 합계 요약</h4>
+                  <div className="space-y-4 flex-1 flex flex-col justify-center">
+                    <div className="flex justify-between items-center p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                      <span className="font-black text-gray-600">서울특별시 합계</span>
+                      <span className="text-3xl font-black text-gray-900">{formatNumber(orderSummaries.seoulTotal)} <small className="text-sm font-bold text-gray-400">포</small></span>
+                    </div>
+                    <div className="flex justify-between items-center p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                      <span className="font-black text-gray-600">경기도 합계</span>
+                      <span className="text-3xl font-black text-gray-900">{formatNumber(orderSummaries.gyeonggiTotal)} <small className="text-sm font-bold text-gray-400">포</small></span>
+                    </div>
+                    <div className="flex justify-between items-center p-6 rounded-2xl bg-gradient-to-r from-gray-900 to-gray-800 shadow-xl mt-6">
+                      <span className="font-black text-white text-lg tracking-tight">전체 지자체 물량 총합</span>
+                      <span className="text-4xl font-black text-cyan-400">{formatNumber(orderSummaries.overallTotal)} <small className="text-sm font-bold text-white/50">포</small></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-md flex flex-col h-full">
+                  <h4 className="font-black text-lg text-gray-800 mb-8 pb-4 border-b border-gray-100 flex justify-between items-center">
+                    <div className="flex items-center gap-2"><Users className="w-5 h-5 text-cyan-500" /> 회원사별 배정 합계</div>
+                    <span className="text-[10px] text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full tracking-widest">가나다순</span>
+                  </h4>
+                  <div className="overflow-visible flex-1 flex flex-col justify-between">
+                    <table className="w-full">
+                      <tbody className="divide-y divide-gray-100">
+                        {memberSummaries.map(m => (
+                          <tr key={m.member} className="hover:bg-gray-50 transition-colors group">
+                            <td className="py-4 px-2 font-black text-gray-700 text-base group-hover:text-cyan-700 transition-colors">{m.member}</td>
+                            <td className="py-4 px-2 text-right font-black text-gray-900 text-xl">{formatNumber(m.qty)} <small className="text-xs font-bold text-gray-400">포</small></td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: 청구서 (엑셀 인라인 스타일 강제 적용) */}
+          {activeTab === 'billing' && (
+            <div className="animate-in fade-in duration-500 space-y-8">
+              <div className="flex justify-between items-center bg-gray-900 p-10 rounded-[2rem] text-white shadow-xl relative overflow-hidden">
+                <div className="absolute -right-10 -top-10 w-64 h-64 bg-gradient-to-br from-fuchsia-600/20 to-cyan-500/20 rounded-full blur-3xl"></div>
+                <div className="relative z-10">
+                  <h3 className="text-gray-400 font-black text-sm uppercase tracking-widest mb-2">Monthly Billing Report</h3>
+                  <div className="text-6xl font-black tracking-tighter">{formatCur(billingReport.grandTotal.amount)}</div>
+                </div>
+                <div className="relative z-10 flex gap-3">
+                  <button onClick={handleGenerateAnalysis} disabled={isAiLoading} className="flex items-center gap-2 bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white px-8 py-4 rounded-2xl shadow-lg hover:scale-105 transition-all font-black text-sm disabled:opacity-50">
+                    {isAiLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5 text-yellow-300" />} ✨ AI 월간 브리핑
+                  </button>
+                  <button onClick={() => handleDownloadExcel('billing-table-export', '청구서(본사)')} className="flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-2xl shadow-lg hover:scale-105 transition-all font-black text-sm">
+                    <Download className="w-5 h-5" /> 엑셀 다운로드
+                  </button>
+                </div>
+              </div>
+
+              {aiAnalysis && (
+                <div className="bg-fuchsia-50/50 border border-fuchsia-100 rounded-[2rem] p-8 shadow-sm animate-in zoom-in duration-300 relative">
+                  <button onClick={() => setAiAnalysis("")} className="absolute top-6 right-6 text-gray-400 hover:text-gray-800"><X className="w-5 h-5" /></button>
+                  <h3 className="font-black text-fuchsia-800 flex items-center gap-2 mb-4"><Sparkles className="w-5 h-5" /> AI 경영 보고 요약</h3>
+                  <div className="text-gray-700 font-medium leading-loose whitespace-pre-wrap">{aiAnalysis}</div>
+                </div>
+              )}
+              
+              <div className="overflow-x-auto rounded-[2rem] border-2 border-gray-200 shadow-sm bg-white">
+                <table id="billing-table-export" style={excelStyles.table}>
+                   <thead>
+                      <tr>
+                        <td colSpan="8" style={excelStyles.titleRow} className="py-4 px-8 text-sm">희망나르미 본사 발행 청구 내역</td>
+                        <td colSpan="2" style={{...excelStyles.titleRow, textAlign: 'right'}} className="py-4 px-8 text-sm">{formattedMonthStr}</td>
+                      </tr>
+                      <tr>
+                        <th style={excelStyles.th}>행정시</th>
+                        <th style={excelStyles.th}>행정구</th>
+                        <th style={excelStyles.th}>구분</th>
+                        <th style={excelStyles.th}>Kg</th>
+                        <th style={excelStyles.th}>품 명</th>
+                        <th style={excelStyles.th}>포수</th>
+                        <th style={excelStyles.th}>금액</th>
+                        <th style={excelStyles.th}>VAT</th>
+                        <th style={excelStyles.th}>합계</th>
+                        <th style={excelStyles.th}>비고</th>
+                      </tr>
+                   </thead>
+                   <tbody>
+                      {billingReport.report.map((item, idx) => (
+                        <React.Fragment key={idx}>
+                           <tr>
+                              <td rowSpan="3" style={excelStyles.td}>{item.city}</td>
+                              <td rowSpan="3" style={excelStyles.td}>{item.region}</td>
+                              <td style={excelStyles.td}>차상위</td>
+                              <td style={excelStyles.td}>10Kg</td>
+                              <td style={excelStyles.tdLeft}>차상위 배송비</td>
+                              <td style={{...excelStyles.tdRight, fontWeight: 'bold'}}>{formatNumber(item.poverty.qty)}</td>
+                              <td style={excelStyles.tdRight}>{formatNumber(item.poverty.sup)}</td>
+                              <td style={excelStyles.tdRight}>{formatNumber(item.poverty.vat)}</td>
+                              <td style={{...excelStyles.tdRight, fontWeight: 'bold'}}>{formatNumber(item.poverty.tot)}</td>
+                              <td style={excelStyles.td}></td>
+                           </tr>
+                           <tr>
+                              <td style={excelStyles.td}>수급자</td>
+                              <td style={excelStyles.td}>10Kg</td>
+                              <td style={excelStyles.tdLeft}>수급자 배송비</td>
+                              <td style={{...excelStyles.tdRight, fontWeight: 'bold'}}>{formatNumber(item.basic.qty)}</td>
+                              <td style={excelStyles.tdRight}>{formatNumber(item.basic.sup)}</td>
+                              <td style={excelStyles.tdRight}>{formatNumber(item.basic.vat)}</td>
+                              <td style={{...excelStyles.tdRight, fontWeight: 'bold'}}>{formatNumber(item.basic.tot)}</td>
+                              <td style={excelStyles.td}></td>
+                           </tr>
+                           <tr>
+                              <td colSpan="3" style={{...excelStyles.subTotalRow, border: '1pt solid #000'}}>합 계</td>
+                              <td style={{...excelStyles.subTotalRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(item.sum.qty)}</td>
+                              <td style={{...excelStyles.subTotalRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(item.sum.supply)}</td>
+                              <td style={{...excelStyles.subTotalRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(item.sum.vat)}</td>
+                              <td style={{...excelStyles.subTotalRow, border: '1pt solid #000', textAlign: 'right', color: '#000080'}}>{formatNumber(item.sum.amount)}</td>
+                              <td style={{...excelStyles.subTotalRow, border: '1pt solid #000'}}></td>
+                           </tr>
+                           {idx !== billingReport.report.length - 1 && (
+                             <tr><td colSpan="10" style={excelStyles.emptyRow}></td></tr>
+                           )}
+                        </React.Fragment>
+                      ))}
+                   </tbody>
+                   <tfoot>
+                      <tr>
+                        <td colSpan="2" style={{...excelStyles.regionSumRow, border: '1pt solid #000', padding: '10px'}}>경기도 합계</td>
+                        <td colSpan="3" style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}>10Kg / 배송비</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.gTotal.qty)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.gTotal.supply)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.gTotal.vat)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.gTotal.amount)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}></td>
+                      </tr>
+                      <tr>
+                        <td colSpan="2" style={{...excelStyles.regionSumRow, border: '1pt solid #000', padding: '10px'}}>서울시 합계</td>
+                        <td colSpan="3" style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}>10Kg / 배송비</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.sTotal.qty)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.sTotal.supply)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.sTotal.vat)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.sTotal.amount)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}></td>
+                      </tr>
+                      <tr>
+                        <td colSpan="2" style={{...excelStyles.grandSumRow, border: '1pt solid #000', padding: '15px'}}>전 체 합 계</td>
+                        <td colSpan="3" style={{...excelStyles.grandSumRow, border: '1pt solid #000'}}>10Kg / 배송비</td>
+                        <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.grandTotal.qty)}</td>
+                        <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.grandTotal.supply)}</td>
+                        <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingReport.grandTotal.vat)}</td>
+                        <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right', fontSize: '14pt'}}>{formatNumber(billingReport.grandTotal.amount)}</td>
+                        <td style={{...excelStyles.grandSumRow, border: '1pt solid #000'}}></td>
+                      </tr>
+                   </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: 결제서 (엑셀 인라인 스타일 강제 적용) */}
+          {activeTab === 'payment' && (
+            <div className="animate-in fade-in duration-500 space-y-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-black text-gray-900 flex items-center gap-3"><CreditCard className="w-8 h-8 text-cyan-600" /> 결제 명세서 <small className="text-gray-400 font-bold ml-2">(조합사 발행용)</small></h2>
+                <button onClick={() => handleDownloadExcel('payment-table-export', '결제서(회원사)')} className="flex items-center gap-2 bg-gray-900 text-white px-8 py-3 rounded-2xl shadow-xl hover:scale-105 transition-all font-black text-sm"><Download className="w-5 h-5 text-cyan-400" /> 엑셀 다운로드</button>
+              </div>
+              <div className="overflow-x-auto rounded-[2rem] border-2 border-gray-200 shadow-sm bg-white">
+                <table id="payment-table-export" style={excelStyles.table}>
+                  {billingSummary.sorted.map((m, mIdx) => (
+                    <tbody key={m.member}>
+                      {mIdx > 0 && <tr><td colSpan="9" style={excelStyles.emptyRow}></td></tr>}
+                      <tr>
+                        <td colSpan="7" style={{...excelStyles.titleRow, textAlign: 'left'}} className="py-3.5 px-8 text-[13px]">조합사 -&gt; 웰쉐어 발행 내역</td>
+                        <td colSpan="2" style={{...excelStyles.titleRow, textAlign: 'right', color: '#666666'}} className="py-3.5 px-8 text-[12px]">{formattedMonthStr}</td>
+                      </tr>
+                      <tr>
+                        <th style={excelStyles.th} className="w-40">조합사</th>
+                        <th style={excelStyles.th} className="w-48">행정구</th>
+                        <th style={excelStyles.th} className="w-16">Kg</th>
+                        <th style={excelStyles.th} className="w-24">품명</th>
+                        <th style={excelStyles.th} className="w-24">포수</th>
+                        <th style={excelStyles.th} className="w-36">금액</th>
+                        <th style={excelStyles.th} className="w-36">VAT</th>
+                        <th style={excelStyles.th} className="w-40">합계</th>
+                        <th style={excelStyles.th} className="w-24">비고</th>
+                      </tr>
+                      {m.regions.map((r, i) => (
+                        <tr key={r.region}>
+                          {i === 0 && <td rowSpan={m.regions.length} style={{...excelStyles.td, fontWeight: 'bold'}}>{m.member}</td>}
+                          <td style={{...excelStyles.tdLeft, fontWeight: 'bold'}}>{getFullRegionName(r.region)}</td>
+                          <td style={excelStyles.td}>10Kg</td>
+                          <td style={excelStyles.td}>배송비</td>
+                          <td style={{...excelStyles.tdRight, fontWeight: 'bold'}}>{formatNumber(r.qty)}</td>
+                          <td style={excelStyles.tdRight}>{formatNumber(r.supplyValue)}</td>
+                          <td style={excelStyles.tdRight}>{formatNumber(r.vatValue)}</td>
+                          <td style={{...excelStyles.tdRight, color: '#000080', fontWeight: 'bold'}}>{formatNumber(r.finalRowTotal)}</td>
+                          <td style={excelStyles.td}></td>
+                        </tr>
+                      ))}
+                      <tr>
+                        <td colSpan="2" style={{...excelStyles.regionSumRow, border: '1pt solid #000', padding: '10px'}}>합 계</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}>10Kg</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}>배송비</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(m.totalQty)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(m.totalSupply)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(m.totalVat)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000', textAlign: 'right', color: '#000080', fontSize: '12pt'}}>{formatNumber(m.totalAmount)}</td>
+                        <td style={{...excelStyles.regionSumRow, border: '1pt solid #000'}}></td>
+                      </tr>
+                    </tbody>
+                  ))}
+                  <tfoot>
+                    <tr>
+                      <td colSpan="4" style={{...excelStyles.grandSumRow, border: '1pt solid #000', padding: '15px'}}>전 체 합 계</td>
+                      <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingSummary.grandTotalQty)}</td>
+                      <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingSummary.grandTotalSupply)}</td>
+                      <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right'}}>{formatNumber(billingSummary.grandTotalVat)}</td>
+                      <td style={{...excelStyles.grandSumRow, border: '1pt solid #000', textAlign: 'right', fontSize: '15pt'}}>{formatNumber(billingSummary.grandTotalAmount)}</td>
+                      <td style={{...excelStyles.grandSumRow, border: '1pt solid #000'}}></td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: 주소록 */}
+          {activeTab === 'contacts' && (
+            <div className="animate-in fade-in duration-500 space-y-10">
+               <div className="bg-gray-900 rounded-[2rem] p-10 text-white flex flex-col md:flex-row items-center justify-between gap-10 border-b-8 border-cyan-500 shadow-2xl relative overflow-hidden">
+                 <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-cyan-500/20 rounded-full blur-3xl"></div>
+                 <div className="flex items-center gap-8 relative z-10">
+                   <div className="p-5 bg-white/10 rounded-3xl backdrop-blur-sm border border-white/10"><PhoneCall className="w-12 h-12 text-cyan-400" /></div>
+                   <div><h3 className="text-2xl font-black mb-1 tracking-tighter text-cyan-100">희망나르미 본사</h3><div className="font-black text-4xl text-white tracking-tighter">02-324-2155</div></div>
+                 </div>
+                 <div className="bg-white/5 p-8 rounded-3xl border border-white/10 text-center md:text-right min-w-[300px] relative z-10">
+                   <div className="text-xs text-fuchsia-400 font-black uppercase mb-2 tracking-widest">General Manager</div>
+                   <div className="font-black text-3xl">김애영 과장</div>
+                   <div className="text-cyan-400 font-black text-xl mt-2 tracking-tighter">010-4511-4469</div>
+                 </div>
+               </div>
+               
+               <div className="grid grid-cols-1 gap-12">
+                  <div className="border border-gray-100 rounded-3xl overflow-hidden shadow-md bg-white overflow-x-auto">
+                    <div className="bg-fuchsia-50 p-6 border-b border-fuchsia-100 font-black text-xl text-fuchsia-900 flex items-center gap-3"><Building2 className="w-6 h-6" /> 지자체 담당 공무원 연락처</div>
+                    <table className="w-full text-left text-sm">
+                      <thead className="bg-gray-50 border-b-2"><tr><th className="p-5 font-black text-gray-400">지역</th><th className="p-5 text-center font-black text-gray-400">차수</th><th className="p-5 font-black text-gray-400">담당자</th><th className="p-5 font-black text-gray-400">연락처</th><th className="p-5 font-black text-gray-400 text-center">동작</th></tr></thead>
+                      <tbody>{GOV_CONTACTS.map(g => (<tr key={g.region} className="border-b border-gray-100 last:border-0 hover:bg-fuchsia-50/30 transition-colors"><td className="p-5 font-black text-gray-800 text-lg">{g.region}</td><td className="p-5 text-center"><span className={`px-4 py-1.5 rounded-full font-black text-[10px] border ${g.order==='1차'?'bg-cyan-50 text-cyan-700 border-cyan-200':'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200'}`}>{g.order}</span></td><td className="p-5 font-black text-gray-600 text-lg">{g.manager}</td><td className="p-5 font-black text-fuchsia-600 text-xl tracking-tighter">{g.phone}</td><td className="p-5 text-center"><button onClick={() => handleDraftMessage(g)} className="bg-white border border-gray-200 text-gray-600 hover:text-fuchsia-600 hover:border-fuchsia-300 px-3 py-1.5 rounded-lg text-xs font-black transition-colors flex items-center justify-center gap-1 mx-auto"><Sparkles className="w-3 h-3" /> ✨ 메시지 작성</button></td></tr>))}</tbody>
+                    </table>
+                  </div>
+
+                  <div className="border border-gray-100 rounded-3xl overflow-hidden shadow-md bg-white overflow-x-auto">
+                    <div className="bg-cyan-50 p-6 border-b border-cyan-100 font-black text-xl text-cyan-900 flex items-center gap-3"><Users className="w-6 h-6" /> 회원사(조합사) 담당자 연락망</div>
+                    <table className="w-full text-left min-w-[1000px]">
+                      <thead className="bg-gray-50 border-b-2"><tr><th className="p-5 font-black text-gray-400 w-56 font-black">기관명</th><th className="p-5 font-black text-gray-400 font-black">배송 담당 구역</th><th className="p-5 font-black text-gray-400 font-black">담당자</th><th className="p-5 font-black text-gray-400 font-black">연락처</th><th className="p-5 font-black text-gray-400 font-black text-center">동작</th></tr></thead>
+                      <tbody>{CONTACTS.map((c, idx) => { 
+                        const show = idx === 0 || CONTACTS[idx-1].agency !== c.agency; 
+                        const rs = CONTACTS.filter(x => x.agency === c.agency).length; 
+                        return (
+                          <tr key={idx} className="border-b border-gray-100 last:border-0 hover:bg-cyan-50/30 transition-colors">
+                            {show ? <td rowSpan={rs} className="p-5 bg-white border-r border-gray-100 font-black text-center align-middle text-cyan-900 text-lg">{c.agency}</td> : null}
+                            <td className="p-5 font-black text-gray-800 text-base">{c.region} {c.detail && <span className="ml-3 text-[11px] bg-gray-50 border border-gray-200 text-gray-500 px-3 py-1 rounded-lg font-normal tracking-wide">구역: {c.detail}</span>}</td>
+                            <td className="p-5 font-black text-gray-600 text-base">{c.manager || '-'}</td>
+                            <td className="p-5 font-black text-cyan-600 text-lg tracking-tighter">{c.phone || '-'}</td>
+                            <td className="p-5 text-center"><button onClick={() => handleDraftMessage(c)} disabled={!c.manager} className="bg-white border border-gray-200 text-gray-600 hover:text-cyan-600 hover:border-cyan-300 disabled:opacity-30 px-3 py-1.5 rounded-lg text-xs font-black transition-colors flex items-center justify-center gap-1 mx-auto"><Sparkles className="w-3 h-3" /> ✨ 메시지 작성</button></td>
+                          </tr>
+                        );
+                      })}</tbody>
+                    </table>
+                  </div>
+               </div>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
